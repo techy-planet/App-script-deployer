@@ -85,5 +85,25 @@ Let's understand further how it works and how it can best suit an individual/org
   - What will happen if a one-time file is modified after execution?
     - Answer 3
 
+## Build and Run (Gradle Wrapper)
+
+This project now includes the Gradle Wrapper for portability. You do not need a local Gradle installation; only Java 8+ is required.
+
+Common commands:
+- On Linux/Mac: ./gradlew clean assemble
+- On Windows:   gradlew.bat clean assemble
+- Run tests:    ./gradlew test
+- Run app:      ./gradlew bootRun
+
+Outputs:
+- Bootable jar: build/libs/script-deployer.jar
+- Distribution tar.gz: build/distributions/script-deployer-2.0.3-RELEASE.tar.gz
+
+Note about gradle-wrapper.jar:
+- The wrapper scripts expect gradle/wrapper/gradle-wrapper.jar to exist. If it is missing in your checkout, regenerate it with any local Gradle installation:
+  - gradle wrapper --gradle-version 6.9.4
+  - or use an existing Gradle to run: ./gradlew wrapper --gradle-version 6.9.4
+This will download the wrapper JAR and ensure the wrapper is fully self-contained for subsequent users/CI.
+
 #### Project Link ####
 https://github.com/techy-planet/script-deployer

@@ -9,8 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HexFormat;
 
-import javax.xml.bind.DatatypeConverter;
 
 public class CommonUtils {
 
@@ -77,7 +77,7 @@ public class CommonUtils {
 		} catch (NoSuchAlgorithmException | IOException ex) {
 			throw new RuntimeException("Checksum of file can't be generated.", ex);
 		}
-		String checksum = DatatypeConverter.printHexBinary(digest).toUpperCase();
+		String checksum = HexFormat.of().formatHex(digest).toUpperCase();
 		if (checksum == null) {
 			throw new RuntimeException("Checksum of file can't be generated.");
 		}
