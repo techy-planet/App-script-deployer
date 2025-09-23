@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.system.ApplicationHome;
 
 import com.techyplanet.scriptdeployer.component.AppSettings;
 import com.techyplanet.scriptdeployer.component.DBSpooler;
@@ -33,11 +34,31 @@ public class ScriptDeployerApplication implements CommandLineRunner {
 	private DBSpooler dbSpooler;
 
 	public static void main(String[] args) {
+		// Ensure application.properties placed next to the jar overrides packaged defaults
+		// even when the jar is launched from a different working directory.
+		// We add the jar's directory (and its config/) to Spring Boot's additional config locations
+		// if it can be resolved. This has higher precedence than classpath resources.
+		ApplicationHome home = new ApplicationHome(ScriptDeployerApplication.class);
+		File source = home.getSource();
+		File jarDir = (source != null && source.isFile()) ? source.getParentFile() : null;
+		if (jarDir == null) {
+			jarDir = home.getDir();
+		}
+		if (jarDir != null && jarDir.isDirectory()) {
+			String existing = System.getProperty("spring.config.additional-location");
+			String jarDirPath = jarDir.getAbsolutePath();
+			String addLoc = "file:" + jarDirPath + "/,optional:" + jarDirPath + "/config/";
+			if (existing == null || existing.trim().isEmpty()) {
+				System.setProperty("spring.config.additional-location", addLoc);
+			} else {
+				System.setProperty("spring.config.additional-location", existing + "," + addLoc);
+			}
+		}
 		SpringApplication.run(ScriptDeployerApplication.class, args);
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		try {
 			dbSpooler.spoolDB("before_");
 			LOGGER.info("=================================================");

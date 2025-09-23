@@ -15,11 +15,11 @@ public class VariablesValidatorTest {
     Path tmp;
 
     @Test
-    public void validate_passesForExistingDirectory() throws Exception {
+    public void validate_passesForExistingDirectory() {
         AppSettings s = new AppSettings();
         ReflectionTestUtils.setField(s, "scriptsLocation", tmp.toAbsolutePath().toString());
         VariablesValidator v = new VariablesValidator();
-        //ReflectionTestUtils.setField(v, "appSettings", s);
+        ReflectionTestUtils.setField(v, "appSettings", s);
         v.validate();
     }
 

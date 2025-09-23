@@ -1,2 +1,4 @@
-java -cp script-deployer.jar -Dloader.path="lib" org.springframework.boot.loader.PropertiesLauncher
+@echo off
+REM Launch the Spring Boot executable jar; forward all args to the app
+java -jar script-deployer.jar %*
 pause

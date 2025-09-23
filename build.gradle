@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.techyplanet'
-version = '2.0.3-RELEASE'
+version = '3.0.0-RELEASE'
 
 
 def javaVersion = 25
@@ -26,10 +26,10 @@ dependencies {
 
     implementation 'org.apache.commons:commons-exec:1.3'
     implementation 'org.apache.commons:commons-lang3'
-    implementation 'commons-io:commons-io:2.7'
+    implementation 'commons-io:commons-io:2.20.0'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.h2database:h2'
-    implementation 'org.apache.commons:commons-text:1.6'
+    implementation 'org.apache.commons:commons-text:1.14.0'
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
@@ -40,4 +40,59 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Package a client release tar.gz with the expected folder structure and extras
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.tasks.bundling.Compression
+
+tasks.register('bundleTar', Tar) {
+    dependsOn(tasks.named('bootJar'))
+    archiveFileName.set("script-deployer-${version}-bundle.tar.gz")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions").get().asFile)
+    compression = Compression.GZIP
+
+    def bundleRoot = "script-deployer-${version}-bundle"
+
+    into(bundleRoot) {
+        // Add deployer folder with scripts/properties and the built jar renamed
+        into('deployer') {
+            // built jar renamed to script-deployer.jar
+            from(tasks.named('bootJar').flatMap { it.archiveFile })
+            rename { String fileName -> fileName.endsWith('.jar') ? 'script-deployer.jar' : fileName }
+            // include deployer scripts/properties
+            from('src/pkg/deployer')
+        }
+        // Add files placeholder folder
+        into('files') {
+            from('src/pkg/files')
+        }
+        // Add root-level docs
+        from('README.md')
+        from('LICENSE')
+    }
+}
+
+// Ensure the bundle is produced as part of the regular build
+tasks.named('build') {
+    dependsOn(tasks.named('bundleTar'))
+}
+
+
+
+// Enforce a specific version of commons-lang3 to avoid conflicts from transitive dependencies
+configurations.configureEach {
+    resolutionStrategy {
+        // Force this exact version for all configurations
+        force 'org.apache.commons:commons-io:3.18.0'
+        force 'org.apache.commons:commons-text:3.18.0'
+
+        // Also ensure any module requesting commons-lang3 uses this version
+        eachDependency { details ->
+            if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+                details.useVersion '3.18.0'
+                details.because 'Enforce commons-lang3 3.18.0 - Fix CVE-2025-48924'
+            }
+        }
+    }
 }

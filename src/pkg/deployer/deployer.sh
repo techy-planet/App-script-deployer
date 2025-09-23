@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 
-java -cp script-deployer.jar -Dloader.path="lib" org.springframework.boot.loader.PropertiesLauncher
+# Launch the Spring Boot executable jar; forward all args to the app
+java -jar script-deployer.jar "$@"
