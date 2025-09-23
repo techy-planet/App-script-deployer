@@ -8,7 +8,6 @@ build/
 **/.gradle/**
 **/build
 **/logs
-**/.junie
 
 ### IntelliJ IDEA ###
 .idea
