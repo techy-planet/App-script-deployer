@@ -80,7 +80,7 @@ public class FileProcessorService {
 			Long sequence = CommonUtils.getFileSequence(oneTimeFileRegexPattern, fileName);
 
 			Date currentDate = new Date();
-			ScriptHistory sameSequenceEntry = scriptHistoryRepository.findBySequenceAndPattern(sequence,
+			ScriptHistory sameSequenceEntry = scriptHistoryRepository.findFirstBySequenceAndPatternOrderByVersionDesc(sequence,
 					oneTimeFilePattern);
 			ScriptHistory sameFileEntry = scriptHistoryRepository
 					.findFirstByFileIdPathOrderByFileIdUpdateDateDesc(relativePath);

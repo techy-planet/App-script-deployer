@@ -84,6 +84,33 @@ public class FileProcessorServiceTest {
     }
 
     @Test
+    public void oneTime_multipleVersions_findsHighestVersion() throws Exception {
+        Path dirPath = Files.createDirectory(tmp.resolve("onetime_multiver"));
+        File dir = dirPath.toFile();
+        File s1 = new File(dir, "S_1_alpha.sql");
+        write(s1, "create table a(id int);");
+
+        // First execution
+        service.processOneTimeFiles(dir);
+        assertEquals(1, repo.count());
+        ScriptHistory h1 = repo.findFirstByFileIdPathOrderByFileIdUpdateDateDesc(rel(dir, s1));
+        assertEquals(Long.valueOf(1L), h1.getVersion());
+
+        // Second execution with change (reset-hash)
+        Thread.sleep(5);
+        write(s1, "create table a(id int, v int);");
+        service.processOneTimeFiles(dir);
+        assertEquals(2, repo.count());
+        ScriptHistory h2 = repo.findFirstByFileIdPathOrderByFileIdUpdateDateDesc(rel(dir, s1));
+        assertEquals(Long.valueOf(2L), h2.getVersion());
+
+        // Third execution with same content as second execution
+        // It should NOT re-execute or fail if it correctly finds the highest version (v2)
+        service.processOneTimeFiles(dir);
+        assertEquals(2, repo.count(), "Should not have added a new record");
+    }
+
+    @Test
     public void repeatable_firstRun_creates_thenReRunWithChange_incrementsVersionOnlyOnChange() throws Exception {
         Path dirPath = Files.createDirectory(tmp.resolve("repeatable"));
         File dir = dirPath.toFile();
@@ -150,11 +177,11 @@ public class FileProcessorServiceTest {
         private final Map<String, List<ScriptHistory>> byPath = new ConcurrentHashMap<>();
 
         @Override
-        public ScriptHistory findBySequenceAndPattern(Long sequence, String pattern) {
+        public ScriptHistory findFirstBySequenceAndPatternOrderByVersionDesc(Long sequence, String pattern) {
             return byPath.values().stream()
                     .flatMap(List::stream)
                     .filter(h -> Objects.equals(h.getSequence(), sequence) && pattern.equals(h.getPattern()))
-                    .max(Comparator.comparing(h -> h.getFileId().getUpdateDate()))
+                    .max(Comparator.comparing(h -> h.getVersion()))
                     .orElse(null);
         }
 
