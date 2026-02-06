@@ -56,7 +56,9 @@ public class CommandUtils {
 			commandLine.addArgument("/c");
 			commandLine.addArgument(command, false);
 		} else {
-			commandLine = CommandLine.parse(command);
+			commandLine = CommandLine.parse("/bin/bash");
+			commandLine.addArgument("-c");
+			commandLine.addArgument(command, false);
 		}
 		int exitCode = executeCommand(commandLine, executeStreamHandler);
 		return exitCode;
